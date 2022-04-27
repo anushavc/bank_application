@@ -1,14 +1,23 @@
 from flask import Flask, render_template, request, flash
+import requests
 import json
 import os.path
 
 app = Flask(__name__)
 app.secret_key = '4u8a4ut5au1te51uea6u81e5a1u6d54n65at4y'
+bearer_token=''
+
 
 acc_num_global = {}
-
+url = "https://rbacio.herokuapp.com/login"
+url1="https://rbacio.herokuapp.com/create_user"
 
 @app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/home')
 def home():
     return render_template('home.html')
 
@@ -35,15 +44,12 @@ def customer_details():
             with open('login.json','w') as login_file:
                 json.dump(login,login_file)
         if request.form['type'] == 'existing':
-            if request.form['name'] not in login:
-                flash('Access Denied!!')
-                flash('Incorrect Username')
-                return render_template('existing_user.html')
-            if login[request.form['name']] != request.form['password']:
-                flash('Access Denied!!')
-                flash('Incorrect Password')
-                return render_template('existing_user.html')
+            r=requests.post(url,json={'email':request.form['name'] ,'password': request.form['password']})
+            global bearer_token
+            bearer_token= r.json()['idToken']
+            flash(bearer_token)
         return render_template('customer_details.html',name=request.form['name'])
+
     else:
         return render_template('home.html')
 
@@ -57,7 +63,7 @@ def new_customer():
 def existing_customer():
     return render_template('existing_customer.html')
 
-
+from requests.structures import CaseInsensitiveDict
 @app.route('/transaction', methods=['GET','POST'])
 def transaction():
     global acc_num_global
@@ -66,19 +72,22 @@ def transaction():
         if os.path.exists('customer.json'):
             with open('customer.json') as customer_file:
                 customer=json.load(customer_file)
+        #creating an new user account
         if request.form['type'] == 'new':
-            customer[request.form['acc_num']] = {'name' : request.form['name'],
-                                                 'number' : request.form['acc_num'], 'balance' : request.form['balance']}
-            with open('customer.json','w') as customer_file:
-                json.dump(customer,customer_file)
+            hed = {'Authorization': 'Bearer ' + bearer_token}
+            flash(bearer_token)
+            r1=requests.post(url1,json={'name':request.form['name'] ,'role':int(request.form['role']),'email':request.form['email'],'password':request.form['password']},headers=hed)
+            flash(r1.json())
+            customer[request.form['email']]= {'name' : request.form['name'],'role' :int(request.form['role']), 'email' : request.form['email'],'password' : request.form['password']}
+
+        #an existing user account
         if request.form['type'] == 'existing':
             if request.form['acc_num'] not in customer:
                 flash('Access Denied!!')
                 flash('Incorrect Account Number')
                 return render_template('existing_customer.html')
-        acc_num_global = request.form['acc_num']
-        return render_template('transaction.html',name=customer[acc_num_global]['name'],
-                               number=customer[acc_num_global]['number'],balance=customer[acc_num_global]['balance'])
+        acc_num_global = request.form['name']
+        return render_template('transaction.html')
     else:
         return render_template('home.html')
 

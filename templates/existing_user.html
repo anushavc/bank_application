@@ -7,7 +7,7 @@
 </head>
 <body align="center">
 <div class="login-box">
-		<h1>Member Login</h1>
+		<h1 style="color:black">Member Login</h1>
         <br>
         {% with messages = get_flashed_messages() %}
           {% if messages %}
@@ -21,16 +21,16 @@
         <form action="customer-details" method="post">
             <input type="hidden" name="type" value="existing">
             <div class="textbox">
-                <label for="name">User Name:</label>
+                <label for="name" style="color:black">Email:</label>
                 <input type="text" name="name" value="" placeholder="Enter Username" required autocomplete="off">
             </div>
             <br>
             <div class="textbox">
-                <label for="name">Password:</label>
+                <label for="name" style="color:black">Password:</label>
                 <input type="password" name="password" value="" placeholder="Enter Password" required autocomplete="off">
             </div>
             <br>
-            <input class="btn" type="submit" name="" value="Sign in">
+            <input class="btn" style="color:black" type="submit" name="" value="Sign in">
         </form>
 	</div>
 </body>
